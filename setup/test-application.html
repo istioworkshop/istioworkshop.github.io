@@ -240,52 +240,6 @@
             
         </li>
     
-        <li class="chapter " data-level="4.4" data-path="../traffic-management/fault-injection.html">
-            
-                <a href="../traffic-management/fault-injection.html">
-            
-                    
-                    Fault injection
-            
-                </a>
-            
-
-            
-        </li>
-    
-        <li class="chapter " data-level="4.5" data-path="../traffic-management/circuit-breaking.html">
-            
-                <a href="../traffic-management/circuit-breaking.html">
-            
-                    
-                    Circuit breaking
-            
-                </a>
-            
-
-            
-        </li>
-    
-
-    
-        
-        <li class="header">Security</li>
-        
-        
-    
-        <li class="chapter " data-level="5.1" data-path="../security/mtls.html">
-            
-                <a href="../security/mtls.html">
-            
-                    
-                    Mutual TLS authentication
-            
-                </a>
-            
-
-            
-        </li>
-    
 
     
         
@@ -293,7 +247,7 @@
         
         
     
-        <li class="chapter " data-level="6.1" data-path="../cleanup/destroy.html">
+        <li class="chapter " data-level="5.1" data-path="../cleanup/destroy.html">
             
                 <a href="../cleanup/destroy.html">
             
@@ -359,13 +313,12 @@ mesh evaluation.</em></p>
 <ul>
 <li>How to install the Online Boutique test application.</li>
 <li>How to verify the installation.</li>
-<li>How to access the application.</li>
 </ul>
 <h2 id="walkthrough">Walkthrough</h2>
 <p>For the purpose of this workshop we will use the test application named
 <a href="https://github.com/GoogleCloudPlatform/microservices-demo" target="_blank"><strong>Online Boutique</strong></a> (previously: Hipster
 Shop) provided by the Google Cloud Platform team. The application will allow us to evaluate several
-service mesh scenarios, including traffic routing, traffic shifting, and circuit breaking.</p>
+service mesh scenarios, including traffic routing, and traffic shifting, and circuit breaking.</p>
 <p>Online Boutique is a cloud-native microservices demo. It consists of 10 microservices, written in
 polyglot programming languages (Go, C#, Node.js, Python, Java), that implement a web-based
 e-commerce app where users can browse items, add them to the cart, and purchase them:</p>
@@ -376,6 +329,8 @@ e-commerce app where users can browse items, add them to the cart, and purchase 
 <p>The frontend service is an entry point to the application. It exposes an HTTP endpoint for its
 clients (web browser, load generator), providing the content compiled from the integrated
 microservices. Internally, the microservices communicate using the gRPC protocol.</p>
+<p>The load generator populates random requests to the application to simulate user behaviour. That
+enables evaluating service mesh scenarios under load.</p>
 <h3 id="install-the-app">Install the app</h3>
 <p>Start with enabling the sidecar injection for the <code>default</code> namespace:</p>
 <pre><code>$ kubectl label namespace default istio-injection=enabled
@@ -385,10 +340,10 @@ inject a sidecar into each new pod created in the <code>default</code> namespace
 and leaving the pods. They act as local proxies capable of enforcing the requested traffic policies.
 Sidecars are the key building block required to form a service mesh. We will inspect them later.</p>
 <p>Now, clone the application repository from Github:</p>
-<pre><code>$ git clone https://github.com/GoogleCloudPlatform/microservices-demo.git
+<pre><code>$ git clone https://github.com/istioworkshop/microservices-demo.git
 $ cd ./microservices-demo
 </code></pre><p>Apply Kubernetes manifests:</p>
-<pre><code>$ kubectl -n default apply -f ./release/kubernetes-manifests.yaml
+<pre><code>$ kubectl -n default apply -f ./release/kubernetes/manifests.yaml
 </code></pre><p>That will create the required Kubernetes deployments and services:</p>
 <pre><code>deployment.apps/emailservice-v1 created
 deployment.apps/emailservice-v2 created
@@ -483,7 +438,7 @@ and <code>shippingservice</code>.</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Deploy test application","level":"2.3","depth":1,"next":{"title":"Service metrics","level":"3.1","depth":1,"path":"observability/grafana.md","ref":"observability/grafana.md","articles":[]},"previous":{"title":"Install Istio Service Mesh","level":"2.2","depth":1,"path":"setup/istio.md","ref":"setup/istio.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"setup/test-application.md","mtime":"2020-06-06T16:34:23.110Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T18:46:09.361Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Deploy test application","level":"2.3","depth":1,"next":{"title":"Service metrics","level":"3.1","depth":1,"path":"observability/grafana.md","ref":"observability/grafana.md","articles":[]},"previous":{"title":"Install Istio Service Mesh","level":"2.2","depth":1,"path":"setup/istio.md","ref":"setup/istio.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"setup/test-application.md","mtime":"2020-06-06T20:43:02.256Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T21:07:18.197Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
