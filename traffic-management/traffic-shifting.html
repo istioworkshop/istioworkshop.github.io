@@ -352,9 +352,115 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="traffic-shifting">Traffic shifting</h1>
+<p><em>This chapter presents how to ...</em></p>
 <h2 id="outline">Outline</h2>
+<p>In this chapter you will learn:</p>
+<ul>
+<li>What is canary release.
+...</li>
+</ul>
 <h2 id="walkthrough">Walkthrough</h2>
+<blockquote>
+<p><strong>Canary release</strong> is a technique to reduce the risk of introducing a new software version in production by slowly rolling out the change to a small subset of users before rolling it out to the entire infrastructure and making it available to everybody. ~ <em>Martin Fowler</em></p>
+</blockquote>
+<p>One of the benefits of using Istio is that it provides the control needed to deploy canary services. The idea behind canary deployment is to introduce a new version of a service by first testing it using a small percentage of user traffic, and then if all goes well, increase, possibly gradually in increments, the percentage while simultaneously phasing out the old version. If anything goes wrong along the way, we abort and rollback to the previous version. In its simplest form, the traffic sent to the canary version is a percentage of requests, but in more sophisticated schemes it can be based on the region, user, or other properties of the request.</p>
+<p>In this chapter we will conduct a canary release of the version <code>v2</code> of the <code>productcatalog</code> service.</p>
+<h3 id="shift-traffic-towards-new-app-version">Shift traffic towards new app version</h3>
+<p>Open the Kiali dashboard:</p>
+<pre><code>$ istioctl dashboard kiali
+</code></pre><p>Then, switch to the graph view and select <code>Versioned app graph</code> type from the graph dropdown. It should display a similar structure:</p>
+<p><img src="../assets/images/traffic-shifting-1.png" alt=""></p>
+<p>Note that initially all user traffic should be routed to the version <code>v1</code> of the <code>productcatalog</code> service.</p>
+<p>In order to start the canary deployment, apply the <code>VirtualService</code> policy:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/productcatalogservice-vs-1.yaml
+</code></pre><p>Inspect its content:</p>
+<pre><code>$ kubectl -n default describe vs productcatalog
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         productcatalogservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Hosts:</span>
+    productcatalogservice
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v1
+<span class="hljs-attr">      Weight:</span>    <span class="hljs-number">90</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v2
+<span class="hljs-attr">      Weight:</span>    <span class="hljs-number">10</span>
+</code></pre>
+<p>The above policy enforces distributing the traffic between versions <code>v1</code> and <code>v2</code> of the <code>productcatalog</code> service in 9:1 ratio (<code>Weight</code> parameter). 90% of the traffic will be routed to the version <code>v1</code>. The remaining 10% will be routed to the version <code>v2</code>.</p>
+<p>Observe the Kiali dashboard. After 1-2 minutes, the version routing should be reflected in the mesh:</p>
+<p><img src="../assets/images/traffic-shifting-2.png" alt=""></p>
+<p>In the meantime, we shoul continuously observe the essential health parameters for the new service workload (success rate, latency).</p>
+<p>Open the Grafana dashboard:</p>
+<pre><code>$ istioctl dashboard grafana
+</code></pre><p>Navigate to the <a href="http://localhost:3000/d/G8wLrJIZk/istio-mesh-dashboard" target="_blank"><strong>Mesh Dashboard</strong></a> and observe the success rate for the <code>v2</code> workload:</p>
+<p><img src="../assets/images/traffic-shifting-3.png" alt=""></p>
+<p>In case, something went wrong, we could immadiately rollback the traffic to the old service version. For instance, by applying the following <code>VirtualService</code> policy:</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         productcatalogservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Hosts:</span>
+    productcatalogservice
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v1
+</code></pre>
+<p>However, the new service version performs well and we can forward more user traffic to it.</p>
+<p>Apply the following policy:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/productcatalogservice-vs-2.yaml
+</code></pre><p>Inspect its content:</p>
+<pre><code>$ kubectl -n default describe vs productcatalog
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         productcatalogservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Hosts:</span>
+    productcatalogservice
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v1
+<span class="hljs-attr">      Weight:</span>    <span class="hljs-number">50</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v2
+<span class="hljs-attr">      Weight:</span>    <span class="hljs-number">50</span>
+</code></pre>
+<p>This time we distribute the event portion of traffic to both service versions. 50% of the traffic will be routed to the version <code>v1</code> and 50% of the traffic will be routed to the version <code>v2</code>.</p>
+<p>In a while, the version routing should be reflected in the Kiali graph:</p>
+<p><img src="../assets/images/traffic-shifting-4.png" alt=""></p>
+<p>Again, we should inspect metrics in the Grafana dashboard to ensure that the communication to the new service version is healthy.</p>
+<p>If the communication is healthy, apply the last policy to redirect 100% of the traffic to the version <code>v2</code> of the <code>productcatalog</code> service:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/productcatalogservice-vs-3.yaml
+</code></pre><p>Inspect its content:</p>
+<pre><code>$ kubectl -n default describe vs productcatalog
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         productcatalogservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Hosts:</span>
+    productcatalogservice
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v2
+</code></pre>
+<p>The canary deployment for the <code>productcatalog</code> service is complete:</p>
+<p><img src="../assets/images/traffic-shifting-5.png" alt=""></p>
 <h2 id="exercises">Exercises</h2>
+<ol>
+<li>Conduct the canary deployment of the <code>email</code> service. Include used Istio policies and screenshots from Kiali and Grafana in your report.</li>
+</ol>
 
                                 
                                 </section>
@@ -398,7 +504,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Traffic shifting","level":"4.3","depth":1,"next":{"title":"Fault injection","level":"4.4","depth":1,"path":"traffic-management/fault-injection.md","ref":"traffic-management/fault-injection.md","articles":[]},"previous":{"title":"Traffic routing","level":"4.2","depth":1,"path":"traffic-management/traffic-routing.md","ref":"traffic-management/traffic-routing.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-shifting.md","mtime":"2020-06-06T09:24:55.704Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T09:45:31.940Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Traffic shifting","level":"4.3","depth":1,"next":{"title":"Fault injection","level":"4.4","depth":1,"path":"traffic-management/fault-injection.md","ref":"traffic-management/fault-injection.md","articles":[]},"previous":{"title":"Traffic routing","level":"4.2","depth":1,"path":"traffic-management/traffic-routing.md","ref":"traffic-management/traffic-routing.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-shifting.md","mtime":"2020-06-06T18:42:53.781Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T18:46:09.361Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

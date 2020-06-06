@@ -352,9 +352,88 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="traffic-routing">Traffic routing</h1>
+<p><em>This chapter presents how to configure version routing between services in the mesh.</em></p>
 <h2 id="outline">Outline</h2>
+<p>In this chapter you will learn:</p>
+<ul>
+<li>What are <code>DestinationRule</code> and <code>VirtualService</code> policies.</li>
+<li>How to route the traffic to a specific service version.</li>
+</ul>
 <h2 id="walkthrough">Walkthrough</h2>
+<p>Open the Kiali dashboard:</p>
+<pre><code>$ istioctl dashboard kiali
+</code></pre><p>Then, switch to the graph view and select <code>Versioned app graph</code> type from the graph dropdown. It should display a similar structure:</p>
+<p><img src="../assets/images/traffic-routing-1.png" alt=""></p>
+<p>Note that due to multiple versions of some application services, traffic is distributed to all versions using Round Robin balancing algorithm. In case, each service version implements different business logic, balancing traffic to all versions can potentially lead to undesirable side effects and harm user experience. Typically, we should strive to handle user traffic only through one version of the service.</p>
+<h3 id="route-traffic-to-a-specific-app-version">Route traffic to a specific app version</h3>
+<p>Let&apos;s start with the <code>shippingservice</code>.</p>
+<p>First, inspect the <code>shippingservice</code> deployments:</p>
+<pre><code>$ kubectl -n default describe deploy shippingservice-v1
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>                   shippingservice-v1
+<span class="hljs-attr">Namespace:</span>              default
+...
+Pod Template:
+<span class="hljs-attr">  Labels:</span>  app=shippingservice
+           version=v1
+...
+</code></pre>
+<pre><code>$ kubectl -n default describe deploy shippingservice-v2
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>                   shippingservice-v2
+<span class="hljs-attr">Namespace:</span>              default
+...
+Pod Template:
+<span class="hljs-attr">  Labels:</span>  app=shippingservice
+           version=v2
+...
+</code></pre>
+<p>Note that pods produced by these deployments have labels determining the service version: <code>version=v1</code> and <code>version=v2</code>.</p>
+<p>In order to enforce routing the user traffic to version <code>v1</code> of the <code>shipping</code> service, apply the <code>DestinationRule</code> and <code>VirtualService</code> policies:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/shippingservice-dr.yaml
+destinationrule.networking.istio.io/shippingservice created
+$ kubectl -n default apply -f ./release/istio/shippingservice-vs.yaml
+virtualservice.networking.istio.io/shippingservice created
+</code></pre><p>The former uses pod labels to specify named service subsets which group service endpoints by version:</p>
+<pre><code>$ kubectl -n default describe dr shippingservice
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         shippingservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Host:</span>  shippingservice
+<span class="hljs-attr">  Subsets:</span>
+<span class="hljs-attr">    Labels:</span>
+<span class="hljs-attr">      Version:</span>  v1
+<span class="hljs-attr">    Name:</span>       v1
+<span class="hljs-attr">    Labels:</span>
+<span class="hljs-attr">      Version:</span>  v2
+<span class="hljs-attr">    Name:</span>       v2
+<span class="hljs-attr">    Labels:</span>
+<span class="hljs-attr">      Version:</span>  v3
+<span class="hljs-attr">    Name:</span>       v3
+</code></pre>
+<p>The latter uses the defined service subsets to route the traffic to the proper service version:</p>
+<pre><code>$ kubectl -n default describe vs shippingservice
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         shippingservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Hosts:</span>
+    shippingservice
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    shippingservice
+<span class="hljs-attr">        Subset:</span>  v1
+</code></pre>
+<p>After applying the policies, the traffic should be routed only to the version <code>v1</code> of the <code>shipping</code> service:</p>
+<p><img src="../assets/images/traffic-routing-2.png" alt=""></p>
+<p>The service node in the graph should be marked with a purple virtual service icon.</p>
 <h2 id="exercises">Exercises</h2>
+<ol>
+<li><p>Apply <code>DestinationRule</code> and <code>VirtualService</code> policies to all services deployed in the service mesh regardless of how many versions each service provides.</p>
+</li>
+<li><p>Route <code>productcatelog</code> traffic to version <code>v2</code>.</p>
+</li>
+</ol>
 
                                 
                                 </section>
@@ -398,7 +477,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Traffic routing","level":"4.2","depth":1,"next":{"title":"Traffic shifting","level":"4.3","depth":1,"path":"traffic-management/traffic-shifting.md","ref":"traffic-management/traffic-shifting.md","articles":[]},"previous":{"title":"Ingress gateway","level":"4.1","depth":1,"path":"traffic-management/ingress-gateway.md","ref":"traffic-management/ingress-gateway.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-routing.md","mtime":"2020-06-06T09:24:55.704Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T09:45:31.940Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Traffic routing","level":"4.2","depth":1,"next":{"title":"Traffic shifting","level":"4.3","depth":1,"path":"traffic-management/traffic-shifting.md","ref":"traffic-management/traffic-shifting.md","articles":[]},"previous":{"title":"Ingress gateway","level":"4.1","depth":1,"path":"traffic-management/ingress-gateway.md","ref":"traffic-management/ingress-gateway.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-routing.md","mtime":"2020-06-06T17:55:49.476Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T18:46:09.361Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

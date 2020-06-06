@@ -352,9 +352,119 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="ingress-gateway">Ingress gateway</h1>
+<p><em>This chapter introduces Istio Ingress Gateway and presents how to configure it for the external application access.</em></p>
 <h2 id="outline">Outline</h2>
+<p>In this chapter you will learn:</p>
+<ul>
+<li>What is Istio Ingress Gateway.</li>
+<li>What is Istio Egress Gateway.</li>
+<li>How to obtain the Ingress endpoint.</li>
+<li>How to configure the external application access.</li>
+</ul>
 <h2 id="walkthrough">Walkthrough</h2>
-<h2 id="exercises">Exercises</h2>
+<p>Istio Gateway is a load balancer operating at the edge of the service mesh. It is in charge of controlling the ingress (inbound) and egress (outbound) traffic, allowing operators to specify which traffic should enter or leave the mesh. The gateway load balancer consists of one or many Istio proxy instances that can be configured similarly to the proxies running alongside application services as sidecars. For configuring the gateway, Istio provides <code>Gateway</code> and <code>VirtualService</code> policy types.</p>
+<p>Istio Ingress Gateway, as the name suggests, provides flexibility of Istio routing for the ingress traffic. Primarily, it enables setting the 4-6 load balancing properties such as ports to expose or TLS settings. It also supports application-layer traffic routing (L7), for instance, routing HTTP requests to application services based on the request path.</p>
+<p>Istio Egress Gateway is another load balancer acting as a dedicated exit node for the traffic leaving the mesh. It enables limiting which services can access external networks, as well as enables securing the egress traffic with TLS policies. The Egress Gateway is out of the scope of this workshop.</p>
+<p>In this workshop, we will configure Istio Ingress Gateway to expose the application to the public network.</p>
+<h3 id="determine-gateway-address">Determine gateway address</h3>
+<p>Start with inspecting the Ingress Gateway service:</p>
+<pre><code>$ kubectl -n istio-system get svc istio-ingressgateway
+NAME                   TYPE           CLUSTER-IP     EXTERNAL-IP                                                              PORT(S)                                                                                                                                      AGE
+istio-ingressgateway   LoadBalancer   100.68.47.59   a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com   15020:31805/TCP,80:30886/TCP,443:30993/TCP,15029:30724/TCP,15030:31428/TCP,15031:32219/TCP,15032:32164/TCP,31400:30109/TCP,15443:32646/TCP   45m
+</code></pre><p>Unlike other services of type <code>ClusterIP</code>, the Ingress service has the <code>LoadBalancer</code> service type. That means the service will be exposed outside the Kubernetes cluster. For such service type, AWS provisions an instance of an external ELB load balancer with a public IP address and a DNS hostname. The load balancer will be accessible by external clients (e.g., the web browser of a user) and will forward the ingress traffic from external networks to the Ingress Gateway service inside the Kubernetes cluster:</p>
+<p><img src="../assets/images/ingress-gateway-lb.png" alt=""></p>
+<p>In order to obtain the address of the Ingress endpoint, run:</p>
+<pre><code>$ INGRESS_GATEWAY=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath=&apos;{.status.loadBalancer.ingress[0].hostname}&apos;)
+$ echo $INGRESS_GATEWAY
+a50936c539b864c85a16962a7dcad24b-1660651843.us-east-1.elb.amazonaws.com
+</code></pre><h3 id="configure-gateway-port">Configure gateway port</h3>
+<p>By default, Istio proxy installed in the Ingress Gateway does not listen on any port - without proper configuration, client requests would fail with <code>Connection Refused</code> errors.</p>
+<p>First, apply the required gateway policy:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/frontend-gateway.yaml
+gateway.networking.istio.io/frontend-gateway created
+</code></pre><p>Inspect its content:</p>
+<pre><code>$ kubectl -n default describe gateway frontend-gateway
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         frontend-gateway
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Selector:</span>
+<span class="hljs-attr">    Istio:</span>  ingressgateway
+<span class="hljs-attr">  Servers:</span>
+<span class="hljs-attr">    Hosts:</span>
+      *
+<span class="hljs-attr">    Port:</span>
+<span class="hljs-attr">      Name:</span>      http
+<span class="hljs-attr">      Number:</span>    <span class="hljs-number">80</span>
+<span class="hljs-attr">      Protocol:</span>  HTTP
+</code></pre>
+<p>The above configuration opens port 80 for HTTP traffic for all destination services (<code>Hosts: *</code>) discovered in the mesh. The <code>Selector</code> binds the configuration to the specific Ingress instance.</p>
+<p>Now, perform a HTTP request to the Ingress endpoint:</p>
+<pre><code>$ curl -v http://$INGRESS_GATEWAY
+*   Trying 3.231.121.103...
+* TCP_NODELAY set
+* Connected to a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com (3.231.121.103) port 80 (#0)
+&gt; GET / HTTP/1.1
+&gt; Host: a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 404 Not Found
+&lt; date: Sat, 06 Jun 2020 15:11:23 GMT
+&lt; server: istio-envoy
+&lt; content-length: 0
+&lt;
+* Connection #0 to host a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com left intact
+* Closing connection 0
+</code></pre><p>The gateway (<code>server: istio-envoy</code>) should respond with <code>404 Not Found</code> status code.</p>
+<p><img src="../assets/images/ingress-gateway-config-1.png" alt=""></p>
+<p>Although Ingress has opened the access port for the inbound traffic, it does not know where to forward the request, hence the error. The destination service is not configured yet.</p>
+<h3 id="configure-gateway-backend">Configure gateway backend</h3>
+<p>In order to instruct the gateway where to forward the request, apply the <code>VirtualService</code> policy:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/frontend-ingress.yaml
+virtualservice.networking.istio.io/frontend-ingress created
+</code></pre><p>Inspect its content:</p>
+<pre><code>$ kubectl -n default describe vs frontend-ingress
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         frontend-ingress
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Gateways:</span>
+    frontend-gateway
+<span class="hljs-attr">  Hosts:</span>
+    *
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>  frontend
+<span class="hljs-attr">        Port:</span>
+<span class="hljs-attr">          Number:</span>  <span class="hljs-number">80</span>
+</code></pre>
+<p>First, the policy selects the gateway to configure (<code>frontend-gateway</code>). Then, it configures the gateway to route the entire HTTP traffic to the <code>frontend</code> service onto port <code>80</code>.</p>
+<p><img src="../assets/images/ingress-gateway-config-2.png" alt=""></p>
+<p>Perform another HTTP request to the Ingress endpoint:</p>
+<pre><code>$ curl -v http://$INGRESS_GATEWAY
+* TCP_NODELAY set
+* Connected to a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com (34.198.22.220) port 80 (#0)
+&gt; GET / HTTP/1.1
+&gt; Host: a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com
+&gt; User-Agent: curl/7.64.1
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 200 OK
+&lt; set-cookie: shop_session-id=fac16c81-52a3-460c-8551-506ebcbe4665; Max-Age=172800
+&lt; date: Sat, 06 Jun 2020 16:32:55 GMT
+&lt; content-type: text/html; charset=utf-8
+&lt; x-envoy-upstream-service-time: 88
+&lt; server: istio-envoy
+&lt; transfer-encoding: chunked
+&lt;
+{ [1186 bytes data]
+100 10647    0 10647    0     0  16740      0 --:--:-- --:--:-- --:--:-- 16714
+* Connection #0 to host a972626016b8742e5813ba4f9c07147b-444579402.us-east-1.elb.amazonaws.com left intact
+* Closing connection 0
+</code></pre><p>This time the request should succeed (<code>HTTP/1.1 200 OK</code>) and the Ingress should return the HTML content of the Online Boutique website.</p>
+<p>Visit the Ingress address in your web browser (Chrome, Firefox) and explore the application. For instance, try to add products to the cart and go through the checkout process.</p>
 
                                 
                                 </section>
@@ -398,7 +508,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Ingress gateway","level":"4.1","depth":1,"next":{"title":"Traffic routing","level":"4.2","depth":1,"path":"traffic-management/traffic-routing.md","ref":"traffic-management/traffic-routing.md","articles":[]},"previous":{"title":"Mesh topology","level":"3.3","depth":1,"path":"observability/kiali.md","ref":"observability/kiali.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/ingress-gateway.md","mtime":"2020-06-06T09:24:55.704Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T09:45:31.940Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Ingress gateway","level":"4.1","depth":1,"next":{"title":"Traffic routing","level":"4.2","depth":1,"path":"traffic-management/traffic-routing.md","ref":"traffic-management/traffic-routing.md","articles":[]},"previous":{"title":"Mesh topology","level":"3.3","depth":1,"path":"observability/kiali.md","ref":"observability/kiali.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/ingress-gateway.md","mtime":"2020-06-06T16:43:57.167Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T18:46:09.361Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
