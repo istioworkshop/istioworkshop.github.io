@@ -306,12 +306,12 @@
                                 <section class="normal markdown-section">
                                 
                                 <h1 id="traffic-shifting">Traffic shifting</h1>
-<p><em>This chapter presents how to ...</em></p>
+<p><em>This chapter presents how to conduct a canary release of a new service version using Istio traffic shifting functionality.</em></p>
 <h2 id="outline">Outline</h2>
 <p>In this chapter you will learn:</p>
 <ul>
-<li>What is canary release.
-...</li>
+<li>What is <em>Canary Release</em> and why it is important.</li>
+<li>How to rollout a complete canary release using traffic shifting functionality.</li>
 </ul>
 <h2 id="walkthrough">Walkthrough</h2>
 <blockquote>
@@ -322,7 +322,7 @@
 <h3 id="shift-traffic-towards-new-app-version">Shift traffic towards new app version</h3>
 <p>Open the Kiali dashboard:</p>
 <pre><code>$ istioctl dashboard kiali
-</code></pre><p>Then, switch to the graph view and select <code>Versioned app graph</code> type from the graph dropdown. It should display a similar structure:</p>
+</code></pre><p>Then, switch to the graph view, select <em>Versioned app graph</em> type, and enable <em>Request percentage</em> in the edge label dropdown. The graph should display a similar structure:</p>
 <p><img src="../assets/images/traffic-shifting-1.png" alt=""></p>
 <p>Note that initially all user traffic should be routed to the version <code>v1</code> of the <code>productcatalog</code> service.</p>
 <p>In order to start the canary deployment, apply the <code>VirtualService</code> policy:</p>
@@ -349,7 +349,7 @@
 <p>The above policy enforces distributing the traffic between versions <code>v1</code> and <code>v2</code> of the <code>productcatalog</code> service in 9:1 ratio (<code>Weight</code> parameter). 90% of the traffic will be routed to the version <code>v1</code>. The remaining 10% will be routed to the version <code>v2</code>.</p>
 <p>Observe the Kiali dashboard. After 1-2 minutes, the version routing should be reflected in the mesh:</p>
 <p><img src="../assets/images/traffic-shifting-2.png" alt=""></p>
-<p>In the meantime, we shoul continuously observe the essential health parameters for the new service workload (success rate, latency).</p>
+<p>In the meantime, we should continuously observe the essential health parameters for the new service workload (success rate, latency).</p>
 <p>Open the Grafana dashboard:</p>
 <pre><code>$ istioctl dashboard grafana
 </code></pre><p>Navigate to the <a href="http://localhost:3000/d/G8wLrJIZk/istio-mesh-dashboard" target="_blank"><strong>Mesh Dashboard</strong></a> and observe the success rate for the <code>v2</code> workload:</p>
@@ -367,7 +367,7 @@
 <span class="hljs-attr">        Host:</span>    productcatalogservice
 <span class="hljs-attr">        Subset:</span>  v1
 </code></pre>
-<p>However, the new service version performs well and we can forward more user traffic to it.</p>
+<p>However, the new service version performs well and we can route more user traffic towards it.</p>
 <p>Apply the following policy:</p>
 <pre><code>$ kubectl -n default apply -f ./release/istio/productcatalogservice-vs-2.yaml
 </code></pre><p>Inspect its content:</p>
@@ -413,7 +413,7 @@
 <p><img src="../assets/images/traffic-shifting-5.png" alt=""></p>
 <h2 id="exercises">Exercises</h2>
 <ol>
-<li>Conduct the canary deployment of the <code>email</code> service. Include used Istio policies and screenshots from Kiali and Grafana in your report.</li>
+<li>Conduct canary deployment for the <code>v2</code> version of the <code>email</code> service. Include used Istio policies and screenshots from Kiali and Grafana in your report.</li>
 </ol>
 
                                 
@@ -458,7 +458,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Traffic shifting","level":"4.3","depth":1,"next":{"title":"Destroy the cluster","level":"5.1","depth":1,"path":"cleanup/destroy.md","ref":"cleanup/destroy.md","articles":[]},"previous":{"title":"Traffic routing","level":"4.2","depth":1,"path":"traffic-management/traffic-routing.md","ref":"traffic-management/traffic-routing.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-shifting.md","mtime":"2020-06-06T18:42:53.781Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T21:07:18.197Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Traffic shifting","level":"4.3","depth":1,"next":{"title":"Destroy the cluster","level":"5.1","depth":1,"path":"cleanup/destroy.md","ref":"cleanup/destroy.md","articles":[]},"previous":{"title":"Traffic routing","level":"4.2","depth":1,"path":"traffic-management/traffic-routing.md","ref":"traffic-management/traffic-routing.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-shifting.md","mtime":"2020-06-07T10:28:23.200Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T10:29:00.152Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

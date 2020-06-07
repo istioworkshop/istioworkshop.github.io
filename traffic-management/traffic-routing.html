@@ -316,7 +316,7 @@
 <h2 id="walkthrough">Walkthrough</h2>
 <p>Open the Kiali dashboard:</p>
 <pre><code>$ istioctl dashboard kiali
-</code></pre><p>Then, switch to the graph view and select <code>Versioned app graph</code> type from the graph dropdown. It should display a similar structure:</p>
+</code></pre><p>Then, switch to the graph view and select <em>Versioned app graph</em> type from the graph dropdown. It should display a similar structure:</p>
 <p><img src="../assets/images/traffic-routing-1.png" alt=""></p>
 <p>Note that due to multiple versions of some application services, traffic is distributed to all versions using Round Robin balancing algorithm. In case, each service version implements different business logic, balancing traffic to all versions can potentially lead to undesirable side effects and harm user experience. Typically, we should strive to handle user traffic only through one version of the service.</p>
 <h3 id="route-traffic-to-a-specific-app-version">Route traffic to a specific app version</h3>
@@ -380,10 +380,11 @@ virtualservice.networking.istio.io/shippingservice created
 </code></pre>
 <p>After applying the policies, the traffic should be routed only to the version <code>v1</code> of the <code>shipping</code> service:</p>
 <p><img src="../assets/images/traffic-routing-2.png" alt=""></p>
+<p>It might take a while until the configuration is distributed to the proxies and Kiali infers new comunication pattern from collected metrics.</p>
 <p>The service node in the graph should be marked with a purple virtual service icon.</p>
 <h2 id="exercises">Exercises</h2>
 <ol>
-<li><p>Apply <code>DestinationRule</code> and <code>VirtualService</code> policies to all services deployed in the service mesh regardless of how many versions each service provides.</p>
+<li><p>Apply <code>DestinationRule</code> and <code>VirtualService</code> policies to all services deployed in the service mesh regardless of how many versions each service provides. Route the traffic to version <code>v1</code> of each service.</p>
 </li>
 <li><p>Route <code>productcatelog</code> traffic to version <code>v2</code>.</p>
 </li>
@@ -431,7 +432,7 @@ virtualservice.networking.istio.io/shippingservice created
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Traffic routing","level":"4.2","depth":1,"next":{"title":"Traffic shifting","level":"4.3","depth":1,"path":"traffic-management/traffic-shifting.md","ref":"traffic-management/traffic-shifting.md","articles":[]},"previous":{"title":"Ingress gateway","level":"4.1","depth":1,"path":"traffic-management/ingress-gateway.md","ref":"traffic-management/ingress-gateway.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-routing.md","mtime":"2020-06-06T17:55:49.476Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T21:07:18.197Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Traffic routing","level":"4.2","depth":1,"next":{"title":"Traffic shifting","level":"4.3","depth":1,"path":"traffic-management/traffic-shifting.md","ref":"traffic-management/traffic-shifting.md","articles":[]},"previous":{"title":"Ingress gateway","level":"4.1","depth":1,"path":"traffic-management/ingress-gateway.md","ref":"traffic-management/ingress-gateway.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-routing.md","mtime":"2020-06-07T10:14:30.577Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T10:29:00.152Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

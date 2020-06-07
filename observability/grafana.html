@@ -310,12 +310,16 @@
 <h2 id="outline">Outline</h2>
 <p>In this chapter you will learn:</p>
 <ul>
+<li>How to access the Grafana dashboard.</li>
 <li>How to analyze service mesh traffic globally.</li>
 <li>How to analyze traffic for a particular application service.</li>
 <li>How to monitor the operation of individual components in Istio control plane.</li>
 </ul>
 <h2 id="walkthrough">Walkthrough</h2>
-<p><strong>TODO:</strong> Describe how metrics are collected</p>
+<p>Most of the service mesh metrics are collected through the presence of a sidecar proxy installed in each application pod.</p>
+<p>Each proxy generates a rich set of metrics describing the inbound and outbound traffic passing through the proxy. They also provide detailed statistics about the administrative functions of the proxy itself, including configuration and health information.</p>
+<p>In addition, Istio provides a set of aggregated service-oriented metrics for monitoring inter-service communication. These metrics cover the four fundamental service health indicators: latency, traffic, errors, and saturation.</p>
+<p>The Istio control plane also provides a collection of self-monitoring metrics. These metrics allow monitoring the behavior of Istio itself.</p>
 <h3 id="access-the-dashboard">Access the dashboard</h3>
 <p>Port-forward the Grafana dashboard to your local machine:</p>
 <pre><code>$ istioctl dashboard grafana
@@ -361,10 +365,10 @@ dropdown.</p>
 <h3 id="analyze-pilot-dashboard">Analyze Pilot dashboard</h3>
 <p>Navigate to the
 <a href="http://localhost:3000/d/3--MLVZZk/istio-pilot-dashboard?orgId=1&amp;refresh=5m" target="_blank"><strong>Pilot Dashboard</strong></a>.</p>
-<p>It provides metrics related to <em>Istio Pilot</em> component deployed in the Istio control plane.</p>
+<p>It provides metrics related to Istio Pilot component deployed in the Istio control plane.</p>
 <p>The first part of the dashboard describes the usage of system resources (CPU, memory, disk):</p>
 <p><img src="../assets/images/grafana-pilot-dashboard-1.png" alt=""></p>
-<p>The second part presents metrics specific to <em>Pilot</em> operation, for instance:</p>
+<p>The second part presents metrics specific to Pilot operation, for instance:</p>
 <ul>
 <li>Pilot pushes - frequency of configuration distribution to sidecar proxies,</li>
 <li>Pilot errors - number of errors encountered during configuration rendering and distrubution,</li>
@@ -373,7 +377,7 @@ dropdown.</p>
 <p><img src="../assets/images/grafana-pilot-dashboard-2.png" alt=""></p>
 <p>Note, each component in the control plane provides a similar monitoring dashboard:</p>
 <p><img src="../assets/images/grafana-all-dashboards.png" alt=""></p>
-<p>Inspect them to identify what metrics are avilable for <em>Galley</em>, <em>Citadel</em> and <em>Mixer</em>.</p>
+<p>Inspect them to identify what metrics are avilable for Galey, Citadel and Mixer.</p>
 <h2 id="exercises">Exercises</h2>
 <p>Use the presented Grafana dashboards to answer the following questions:</p>
 <ol>
@@ -382,7 +386,7 @@ dropdown.</p>
 <li>Are there any request errors occurring in the application at the moment? How do you check that?</li>
 <li>Which application service processes the most requests? What is its p99 latency and success rate?</li>
 <li>What is the current CPU and memory usage by Istio Pilot?</li>
-<li>Does Istio Pilot encouteres errors at the moment?</li>
+<li>Does Istio Pilot encouteres any errors at the moment?</li>
 </ol>
 
                                 
@@ -427,7 +431,7 @@ dropdown.</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Service metrics","level":"3.1","depth":1,"next":{"title":"Distributed tracing","level":"3.2","depth":1,"path":"observability/Jaeger.md","ref":"observability/Jaeger.md","articles":[]},"previous":{"title":"Deploy test application","level":"2.3","depth":1,"path":"setup/test-application.md","ref":"setup/test-application.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"observability/grafana.md","mtime":"2020-06-06T09:24:55.701Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T21:07:18.197Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Service metrics","level":"3.1","depth":1,"next":{"title":"Distributed tracing","level":"3.2","depth":1,"path":"observability/Jaeger.md","ref":"observability/Jaeger.md","articles":[]},"previous":{"title":"Deploy test application","level":"2.3","depth":1,"path":"setup/test-application.md","ref":"setup/test-application.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"observability/grafana.md","mtime":"2020-06-07T09:34:44.160Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T10:29:00.152Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

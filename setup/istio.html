@@ -310,7 +310,7 @@
 <h2 id="outline">Outline</h2>
 <p>In this chapter you will learn:</p>
 <ul>
-<li>How to setup and use the Istio management utility <code>istioctl</code>.</li>
+<li>How to setup the Istio management utility <code>istioctl</code>.</li>
 <li>How to use <code>istioctl</code> to install Istio control plane.</li>
 <li>How to verify the Istio installation.</li>
 </ul>
@@ -365,8 +365,8 @@ Available Commands:
   <code>istioctl help manifest apply</code>.</p>
 </blockquote>
 <h3 id="deploy-control-plane">Deploy control plane</h3>
-<p>In order to install the Istio control plane, execute
-<code>istioctl</code> <a href="https://istio.io/docs/reference/commands/istioctl/#istioctl-manifest-apply" target="_blank">manifest apply</a>
+<p>In order to install Istio control plane, execute <code>istioctl</code>
+<a href="https://istio.io/docs/reference/commands/istioctl/#istioctl-manifest-apply" target="_blank">manifest apply</a>
 command:</p>
 <pre><code>$ istioctl manifest apply --set profile=demo
 - Applying manifest for component Base...
@@ -475,7 +475,7 @@ istio-ingressgateway   LoadBalancer   10.233.34.251   &lt;IP-ADDRESS&gt;  15020:
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Install Istio Service Mesh","level":"2.2","depth":1,"next":{"title":"Deploy test application","level":"2.3","depth":1,"path":"setup/test-application.md","ref":"setup/test-application.md","articles":[]},"previous":{"title":"Provision a K8S cluster","level":"2.1","depth":1,"path":"setup/kubernetes.md","ref":"setup/kubernetes.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"setup/istio.md","mtime":"2020-06-06T20:40:51.262Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T21:07:18.197Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Install Istio Service Mesh","level":"2.2","depth":1,"next":{"title":"Deploy test application","level":"2.3","depth":1,"path":"setup/test-application.md","ref":"setup/test-application.md","articles":[]},"previous":{"title":"Provision a K8S cluster","level":"2.1","depth":1,"path":"setup/kubernetes.md","ref":"setup/kubernetes.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"setup/istio.md","mtime":"2020-06-07T07:45:11.550Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T10:29:00.152Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

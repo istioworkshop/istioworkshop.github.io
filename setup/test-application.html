@@ -373,7 +373,9 @@ deployment.apps/redis-cart-v1 created
 service/redis-cart created
 deployment.apps/adservice-v1 created
 service/adservice created
-</code></pre><h3 id="verify-installation">Verify installation</h3>
+</code></pre><p>Note that some application services are deployed in multiple versions, for instance, <code>emailservice</code>
+and <code>shippingservice</code>.</p>
+<h3 id="verify-installation">Verify installation</h3>
 <p>Ensure that all deployed pods are running (inspect <code>READY</code> column):</p>
 <pre><code>$ kubectl -n default get pods
 NAME                                        READY   STATUS    RESTARTS   AGE
@@ -393,9 +395,7 @@ redis-cart-v1-65b44b7949-rszpq              2/2     Running       0          15m
 shippingservice-v1-5fff674495-pkcdd         2/2     Running       0          15m
 shippingservice-v2-6fc7489bdb-tnp2v         2/2     Running       0          72s
 shippingservice-v3-677b68d6bf-jmnjc         2/2     Running       0          71s
-</code></pre><p>Note that some application services are deployed in multiple versions, for instance, <code>emailservice</code>
-and <code>shippingservice</code>.</p>
-
+</code></pre>
                                 
                                 </section>
                             
@@ -438,7 +438,7 @@ and <code>shippingservice</code>.</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Deploy test application","level":"2.3","depth":1,"next":{"title":"Service metrics","level":"3.1","depth":1,"path":"observability/grafana.md","ref":"observability/grafana.md","articles":[]},"previous":{"title":"Install Istio Service Mesh","level":"2.2","depth":1,"path":"setup/istio.md","ref":"setup/istio.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"setup/test-application.md","mtime":"2020-06-06T20:43:02.256Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-06T21:07:18.197Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Deploy test application","level":"2.3","depth":1,"next":{"title":"Service metrics","level":"3.1","depth":1,"path":"observability/grafana.md","ref":"observability/grafana.md","articles":[]},"previous":{"title":"Install Istio Service Mesh","level":"2.2","depth":1,"path":"setup/istio.md","ref":"setup/istio.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"setup/test-application.md","mtime":"2020-06-07T07:50:58.880Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T10:29:00.152Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
