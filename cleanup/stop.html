@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Service metrics · GitBook</title>
+        <title>Stop the cluster · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="Jaeger.html" />
+    <link rel="next" href="destroy.html" />
     
     
-    <link rel="prev" href="../setup/test-application.html" />
+    <link rel="prev" href="../traffic-management/fault-injection.html" />
     
 
     </head>
@@ -168,9 +168,9 @@
         
         
     
-        <li class="chapter active" data-level="3.1" data-path="grafana.html">
+        <li class="chapter " data-level="3.1" data-path="../observability/grafana.html">
             
-                <a href="grafana.html">
+                <a href="../observability/grafana.html">
             
                     
                     Service metrics
@@ -181,9 +181,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.2" data-path="Jaeger.html">
+        <li class="chapter " data-level="3.2" data-path="../observability/Jaeger.html">
             
-                <a href="Jaeger.html">
+                <a href="../observability/Jaeger.html">
             
                     
                     Distributed tracing
@@ -194,9 +194,9 @@
             
         </li>
     
-        <li class="chapter " data-level="3.3" data-path="kiali.html">
+        <li class="chapter " data-level="3.3" data-path="../observability/kiali.html">
             
-                <a href="kiali.html">
+                <a href="../observability/kiali.html">
             
                     
                     Mesh topology
@@ -273,9 +273,9 @@
         
         
     
-        <li class="chapter " data-level="5.1" data-path="../cleanup/stop.html">
+        <li class="chapter active" data-level="5.1" data-path="stop.html">
             
-                <a href="../cleanup/stop.html">
+                <a href="stop.html">
             
                     
                     Stop the cluster
@@ -286,9 +286,9 @@
             
         </li>
     
-        <li class="chapter " data-level="5.2" data-path="../cleanup/destroy.html">
+        <li class="chapter " data-level="5.2" data-path="destroy.html">
             
-                <a href="../cleanup/destroy.html">
+                <a href="destroy.html">
             
                     
                     Destroy the cluster
@@ -329,7 +329,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >Service metrics</a>
+        <a href=".." >Stop the cluster</a>
     </h1>
 </div>
 
@@ -344,89 +344,77 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="inspect-service-metrics-in-grafana">Inspect service metrics in Grafana</h1>
-<p><em>This chapter presents how to monitor service mesh traffic using the Grafana Istio addon.</em></p>
-<h2 id="outline">Outline</h2>
-<p>In this chapter you will learn:</p>
-<ul>
-<li>How to access the Grafana dashboard.</li>
-<li>How to analyze service mesh traffic globally.</li>
-<li>How to analyze traffic for a particular application service.</li>
-<li>How to monitor the operation of individual components in Istio control plane.</li>
-</ul>
-<h2 id="walkthrough">Walkthrough</h2>
-<p>Most of the service mesh metrics are collected through the presence of a sidecar proxy installed in each application pod.</p>
-<p>Each proxy generates a rich set of metrics describing the inbound and outbound traffic passing through the proxy. They also provide detailed statistics about the administrative functions of the proxy itself, including configuration and health information.</p>
-<p>In addition, Istio provides a set of aggregated service-oriented metrics for monitoring inter-service communication. These metrics cover the four fundamental service health indicators: latency, traffic, errors, and saturation.</p>
-<p>The Istio control plane also provides a collection of self-monitoring metrics. These metrics allow monitoring the behavior of Istio itself.</p>
-<h3 id="access-the-dashboard">Access the dashboard</h3>
-<p>Port-forward the Grafana dashboard to your local machine:</p>
-<pre><code>$ istioctl dashboard grafana
-</code></pre><p>Your browser should startup automatically and display the dashboard. Otherwise, visit the address:
-<a href="http://localhost:3000" target="_blank">http://localhost:3000</a>.</p>
-<h3 id="analyze-mesh-dashboard">Analyze mesh dashboard</h3>
-<p>Navigate to the <a href="http://localhost:3000/d/G8wLrJIZk/istio-mesh-dashboard" target="_blank"><strong>Mesh Dashboard</strong></a>. It
-should look similar to:</p>
-<p><img src="../assets/images/grafana-mesh-dashboard-1.png" alt=""></p>
-<p>The dashboard provides the global view of the service mesh:</p>
-<ul>
-<li>total number of discovered services,</li>
-<li>global request volume expressed in <em>operations per second</em> (ops),</li>
-<li>global success rate - percentage of requests completed with success,</li>
-<li>total failed requests - number of requests ended with 4xx and 5xx HTTP error codes.</li>
-</ul>
-<p>In addition, the dashboard provides essential metrics for the discovered services:</p>
-<ul>
-<li>operations per second,</li>
-<li>p50, p90, p99 latency,</li>
-<li>success rate.</li>
-</ul>
-<h3 id="analyze-service-dashboard">Analyze service dashboard</h3>
-<p>Navigate to the <a href="http://localhost:3000/d/LJ_uJAvmk/istio-service-dashboard" target="_blank"><strong>Service Dashboard</strong></a>
-and pick the <code>productcatalog</code> service from the <em>Service</em> dropdown.</p>
-<p>The dashboard should look similar to:</p>
-<p><img src="../assets/images/grafana-service-dashboard-1.png" alt="">
-<img src="../assets/images/grafana-service-dashboard-2.png" alt=""></p>
-<p>The dashboard provides detailed metrics for the selected service:</p>
-<ul>
-<li>client/server request volume,</li>
-<li>client/server success rate,</li>
-<li>client/server request duration,</li>
-<li>incoming requests by source,</li>
-<li>incoming success rate by source,</li>
-<li>incoming request duration by source,</li>
-<li>incoming request size by source,</li>
-<li>TCP received/sent bytes (only for raw TCP traffic).</li>
-</ul>
-<p>Note that you can use the <em>Service</em> dropdown to switch between inspected services. Moreover, you can
-view the metrics in the context of a particular service client by using the <em>Client workload</em>
-dropdown.</p>
-<h3 id="analyze-pilot-dashboard">Analyze Pilot dashboard</h3>
-<p>Navigate to the
-<a href="http://localhost:3000/d/3--MLVZZk/istio-pilot-dashboard?orgId=1&amp;refresh=5m" target="_blank"><strong>Pilot Dashboard</strong></a>.</p>
-<p>It provides metrics related to Istio Pilot component deployed in the Istio control plane.</p>
-<p>The first part of the dashboard describes the usage of system resources (CPU, memory, disk):</p>
-<p><img src="../assets/images/grafana-pilot-dashboard-1.png" alt=""></p>
-<p>The second part presents metrics specific to Pilot operation, for instance:</p>
-<ul>
-<li>Pilot pushes - frequency of configuration distribution to sidecar proxies,</li>
-<li>Pilot errors - number of errors encountered during configuration rendering and distrubution,</li>
-<li>Proxy push time - time needed to synchronize configuration to a proxy.</li>
-</ul>
-<p><img src="../assets/images/grafana-pilot-dashboard-2.png" alt=""></p>
-<p>Note, each component in the control plane provides a similar monitoring dashboard:</p>
-<p><img src="../assets/images/grafana-all-dashboards.png" alt=""></p>
-<p>Inspect them to identify what metrics are avilable for Galey, Citadel and Mixer.</p>
-<h2 id="exercises">Exercises</h2>
-<p>Use the presented Grafana dashboards to answer the following questions:</p>
-<ol>
-<li>How many ops are being currently processed by the application?</li>
-<li>What is the global success rate?</li>
-<li>Are there any request errors occurring in the application at the moment? How do you check that?</li>
-<li>Which application service processes the most requests? What is its p99 latency and success rate?</li>
-<li>What is the current CPU and memory usage by Istio Pilot?</li>
-<li>Does Istio Pilot encouteres any errors at the moment?</li>
-</ol>
+                                <h1 id="stopping-the-cluster">Stopping the cluster</h1>
+<h2 id="stop-the-cluster">Stop the cluster</h2>
+<p>First, list node scaling groups:</p>
+<pre><code>$ kops get ig
+NAME                ROLE    MACHINETYPE MIN    MAX    ZONES
+master-us-east-1a   Master  t2.medium   1   1   us-east-1a
+nodes               Node    t2.medium   0   0   us-east-1a
+</code></pre><p>Save, name for the master group:</p>
+<pre><code>$ MASTER_NAME=master-us-east-1a
+</code></pre><p>Edit the group for Kubernetes worker nodes:</p>
+<pre><code>$ kops edit ig nodes
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> kops.k8s.io/v1alpha2
+<span class="hljs-attr">kind:</span> InstanceGroup
+<span class="hljs-attr">metadata:</span>
+  ...
+<span class="hljs-attr">  name:</span> nodes
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  image:</span> kope.io/k8s<span class="hljs-bullet">-1.16</span>-debian-stretch-amd64-hvm-ebs<span class="hljs-bullet">-2020</span><span class="hljs-bullet">-01</span><span class="hljs-bullet">-17</span>
+<span class="hljs-attr">  machineType:</span> t2.medium
+<span class="hljs-attr">  maxSize:</span> <span class="hljs-number">0</span>
+<span class="hljs-attr">  minSize:</span> <span class="hljs-number">0</span>
+  ...
+</code></pre>
+<p>Edit the group for Kubernetes master nodes:</p>
+<pre><code>$ kops edit ig $MASTER_NAME
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">apiVersion:</span> kops.k8s.io/v1alpha2
+<span class="hljs-attr">kind:</span> InstanceGroup
+<span class="hljs-attr">metadata:</span>
+  ...
+<span class="hljs-attr">  name:</span> master-us-east<span class="hljs-bullet">-1</span>a
+<span class="hljs-attr">spec:</span>
+<span class="hljs-attr">  image:</span> kope.io/k8s<span class="hljs-bullet">-1.16</span>-debian-stretch-amd64-hvm-ebs<span class="hljs-bullet">-2020</span><span class="hljs-bullet">-01</span><span class="hljs-bullet">-17</span>
+<span class="hljs-attr">  machineType:</span> t2.medium
+<span class="hljs-attr">  maxSize:</span> <span class="hljs-number">0</span>
+<span class="hljs-attr">  minSize:</span> <span class="hljs-number">0</span>
+  ...
+</code></pre>
+<p>Update the cluster:</p>
+<pre><code>$ kops update cluster --yes
+
+Using cluster from kubectl context: istio-workshop.k8s.local
+
+I0607 16:18:35.680522   18665 apply_cluster.go:556] Gossip DNS: skipping DNS validation
+W0607 16:18:35.827462   18665 firewall.go:250] Opening etcd port on masters for access from the nodes, for calico.  This is unsafe in untrusted environments.
+I0607 16:18:38.189527   18665 executor.go:103] Tasks: 0 done / 95 total; 46 can run
+I0607 16:18:39.544345   18665 executor.go:103] Tasks: 46 done / 95 total; 24 can run
+I0607 16:18:40.482241   18665 executor.go:103] Tasks: 70 done / 95 total; 21 can run
+I0607 16:18:41.809540   18665 executor.go:103] Tasks: 91 done / 95 total; 3 can run
+I0607 16:18:42.444500   18665 executor.go:103] Tasks: 94 done / 95 total; 1 can run
+I0607 16:18:42.651568   18665 executor.go:103] Tasks: 95 done / 95 total; 0 can run
+I0607 16:18:43.972348   18665 update_cluster.go:305] Exporting kubecfg for cluster
+kops has set your kubectl context to istio-workshop.k8s.local
+
+Cluster changes have been applied to the cloud.
+
+
+Changes may require instances to restart: kops rolling-update cluster
+</code></pre><p>Run the rolling update of the cluster:</p>
+<pre><code>$ kops rolling-update cluster --cloudonly
+</code></pre><p>Now, open the AWS console, go to the EC2 dashboard and ensure that all instances are in <code>terminated</code> state.</p>
+<h2 id="restart-the-cluster">Restart the cluster</h2>
+<p>In order to restart the stopped cluster, run the exact same steps but provide different values for <code>minSize</code> and <code>maxSize</code> parameters in the instance group settings.</p>
+<p>For Kubernetes worker nodes:</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">maxSize:</span> <span class="hljs-number">2</span>
+<span class="hljs-attr">minSize:</span> <span class="hljs-number">2</span>
+</code></pre>
+<p>For Kubernetes master nodes:</p>
+<pre><code class="lang-yaml"><span class="hljs-attr">maxSize:</span> <span class="hljs-number">1</span>
+<span class="hljs-attr">minSize:</span> <span class="hljs-number">1</span>
+</code></pre>
+<p>Wait 5-10 minutes until the cluster is ready and all pods are recreated. Inspect <code>default</code> and <code>istio-system</code> namespaces to ensure that are pods are up and running.</p>
 
                                 
                                 </section>
@@ -454,12 +442,12 @@ dropdown.</p>
 
             
                 
-                <a href="../setup/test-application.html" class="navigation navigation-prev " aria-label="Previous page: Deploy test application">
+                <a href="../traffic-management/fault-injection.html" class="navigation navigation-prev " aria-label="Previous page: Fault injection">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="Jaeger.html" class="navigation navigation-next " aria-label="Next page: Distributed tracing">
+                <a href="destroy.html" class="navigation navigation-next " aria-label="Next page: Destroy the cluster">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -470,7 +458,7 @@ dropdown.</p>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Service metrics","level":"3.1","depth":1,"next":{"title":"Distributed tracing","level":"3.2","depth":1,"path":"observability/Jaeger.md","ref":"observability/Jaeger.md","articles":[]},"previous":{"title":"Deploy test application","level":"2.3","depth":1,"path":"setup/test-application.md","ref":"setup/test-application.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"observability/grafana.md","mtime":"2020-06-07T09:34:44.160Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T14:45:11.234Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Stop the cluster","level":"5.1","depth":1,"next":{"title":"Destroy the cluster","level":"5.2","depth":1,"path":"cleanup/destroy.md","ref":"cleanup/destroy.md","articles":[]},"previous":{"title":"Fault injection","level":"4.4","depth":1,"path":"traffic-management/fault-injection.md","ref":"traffic-management/fault-injection.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"cleanup/stop.md","mtime":"2020-06-07T14:35:33.290Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T14:45:11.234Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
