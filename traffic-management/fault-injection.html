@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Traffic routing · GitBook</title>
+        <title>Fault injection · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,10 @@
     <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="traffic-shifting.html" />
+    <link rel="next" href="../cleanup/destroy.html" />
     
     
-    <link rel="prev" href="ingress-gateway.html" />
+    <link rel="prev" href="traffic-shifting.html" />
     
 
     </head>
@@ -227,7 +227,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="4.2" data-path="traffic-routing.html">
+        <li class="chapter " data-level="4.2" data-path="traffic-routing.html">
             
                 <a href="traffic-routing.html">
             
@@ -253,7 +253,7 @@
             
         </li>
     
-        <li class="chapter " data-level="4.4" data-path="fault-injection.html">
+        <li class="chapter active" data-level="4.4" data-path="fault-injection.html">
             
                 <a href="fault-injection.html">
             
@@ -316,7 +316,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href=".." >Traffic routing</a>
+        <a href=".." >Fault injection</a>
     </h1>
 </div>
 
@@ -331,91 +331,93 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id="traffic-routing">Traffic routing</h1>
-<p><em>This chapter presents how to configure version routing between services in the mesh.</em></p>
+                                <h1 id="ingress-gateway">Ingress gateway</h1>
+<p><em>This chapter presents how to inject faults into service mesh to test application resilency against service failures.</em></p>
 <h2 id="outline">Outline</h2>
 <p>In this chapter you will learn:</p>
 <ul>
-<li>What are <code>DestinationRule</code> and <code>VirtualService</code> policies.</li>
-<li>How to route the traffic to a specific service version.</li>
+<li>What is <em>Fault Injection</em>.</li>
+<li>How to inject delay and abort faults into a service mesh.</li>
 </ul>
 <h2 id="walkthrough">Walkthrough</h2>
-<p>Open the Kiali dashboard:</p>
-<pre><code>$ istioctl dashboard kiali
-</code></pre><p>Then, switch to the graph view and select <em>Versioned app graph</em> type from the graph dropdown. It should display a similar structure:</p>
-<p><img src="../assets/images/traffic-routing-1.png" alt=""></p>
-<p>Note that due to multiple versions of some application services, traffic is distributed to all versions using Round Robin balancing algorithm. In case, each service version implements different business logic, balancing traffic to all versions can potentially lead to undesirable side effects and harm user experience. Typically, we should strive to handle user traffic only through one version of the service.</p>
-<h3 id="route-traffic-to-a-specific-app-version">Route traffic to a specific app version</h3>
-<p>Let&apos;s start with the <code>shippingservice</code>.</p>
-<p>First, inspect the <code>shippingservice</code> deployments:</p>
-<pre><code>$ kubectl -n default describe deploy shippingservice-v1
-</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>                   shippingservice-v1
-<span class="hljs-attr">Namespace:</span>              default
-...
-Pod Template:
-<span class="hljs-attr">  Labels:</span>  app=shippingservice
-           version=v1
-...
-</code></pre>
-<pre><code>$ kubectl -n default describe deploy shippingservice-v2
-</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>                   shippingservice-v2
-<span class="hljs-attr">Namespace:</span>              default
-...
-Pod Template:
-<span class="hljs-attr">  Labels:</span>  app=shippingservice
-           version=v2
-...
-</code></pre>
-<p>Note that pods produced by these deployments have labels determining the service version: <code>version=v1</code> and <code>version=v2</code>.</p>
-<p>In order to enforce routing the user traffic to version <code>v1</code> of the <code>shipping</code> service, apply the <code>DestinationRule</code> and <code>VirtualService</code> policies:</p>
-<pre><code>$ kubectl -n default apply -f ./release/istio/shippingservice-dr.yaml
-destinationrule.networking.istio.io/shippingservice created
-$ kubectl -n default apply -f ./release/istio/shippingservice-vs.yaml
-virtualservice.networking.istio.io/shippingservice created
-</code></pre><p>The former uses pod labels to specify named service subsets which group service endpoints by version:</p>
-<pre><code>$ kubectl -n default describe dr shippingservice
-</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         shippingservice
-<span class="hljs-attr">Namespace:</span>    default
-...
-<span class="hljs-attr">Spec:</span>
-<span class="hljs-attr">  Host:</span>  shippingservice
-<span class="hljs-attr">  Subsets:</span>
-<span class="hljs-attr">    Labels:</span>
-<span class="hljs-attr">      Version:</span>  v1
-<span class="hljs-attr">    Name:</span>       v1
-<span class="hljs-attr">    Labels:</span>
-<span class="hljs-attr">      Version:</span>  v2
-<span class="hljs-attr">    Name:</span>       v2
-<span class="hljs-attr">    Labels:</span>
-<span class="hljs-attr">      Version:</span>  v3
-<span class="hljs-attr">    Name:</span>       v3
-</code></pre>
-<p>The latter uses the defined service subsets to route the traffic to the proper service version:</p>
-<pre><code>$ kubectl -n default describe vs shippingservice
-</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         shippingservice
+<p><em>Fault injection</em> is a testing method that introduces errors into a system to ensure that it can withstand and recover from error conditions.</p>
+<p>Unlike other mechanisms for introducing errors such as delaying packets or killing pods at the network layer, Istio proxy enables injecting faults at the application layer. That allows operators to inject more relevant failures, such as HTTP error codes.</p>
+<p>Istio supports two categories of faults, both configured using a <code>VirtualService</code> policy:</p>
+<ul>
+<li>delays - timing failures, mimic increased network latency or an overloaded upstream service,</li>
+<li>aborts - crash failures, mimic failures in upstream services (HTTP error codes or TCP connection failures).</li>
+</ul>
+<p>In this chapter, we will inject both types of faults into the test application and observe how it handles the failure.</p>
+<h3 id="inject-http-delay-fault">Inject HTTP delay fault</h3>
+<p>In this scenario we will inject a delay fault into the <code>payment</code> service.</p>
+<p>Start with applying the fault policy:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/paymentservice-fault-vs-1.yaml
+virtualservice.networking.istio.io/paymentservice configured
+</code></pre><p>Inspect its details:</p>
+<pre><code>$ kubectl -n default describe vs paymentservice
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         paymentservice
 <span class="hljs-attr">Namespace:</span>    default
 ...
 <span class="hljs-attr">Spec:</span>
 <span class="hljs-attr">  Hosts:</span>
-    shippingservice
+    paymentservice
 <span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Fault:</span>
+<span class="hljs-attr">      Delay:</span>
+        Fixed Delay:  <span class="hljs-number">7</span>s
+<span class="hljs-attr">        Percentage:</span>
+<span class="hljs-attr">          Value:</span>  <span class="hljs-number">100</span>
 <span class="hljs-attr">    Route:</span>
 <span class="hljs-attr">      Destination:</span>
-<span class="hljs-attr">        Host:</span>    shippingservice
+<span class="hljs-attr">        Host:</span>    paymentservice
 <span class="hljs-attr">        Subset:</span>  v1
 </code></pre>
-<p>After applying the policies, the traffic should be routed only to the version <code>v1</code> of the <code>shipping</code> service:</p>
-<p><img src="../assets/images/traffic-routing-2.png" alt=""></p>
-<p>It might take a while until the configuration is distributed to the proxies and Kiali infers new comunication pattern from collected metrics.</p>
-<p>The service node in the graph should be marked with a purple virtual service icon.</p>
-<h2 id="exercises">Exercises</h2>
-<ol>
-<li><p>Apply <code>DestinationRule</code> and <code>VirtualService</code> policies to all services deployed in the service mesh regardless of how many versions each service provides. Route the traffic to version <code>v1</code> of each service.</p>
-</li>
-<li><p>Route <code>productcatelog</code> traffic to version <code>v2</code>.</p>
-</li>
-</ol>
-
+<p>The above configuration injects 7s delay for 100% percent of the traffic to the <code>payment</code> service.</p>
+<p>Now, visit the test application in your web browser. Order one item and proceed to the checkout stage:</p>
+<p><img src="../assets/images/fault-injection-place-order.png" alt=""></p>
+<p>Before placing the order, open the network analyzer tool provided by your web browser:</p>
+<p><img src="../assets/images/fault-injection-inspect.png" alt=""></p>
+<p>Filter out the requests to the <code>checkout</code> service:</p>
+<p><img src="../assets/images/fault-injection-inspect-filter.png" alt=""></p>
+<p>Place the order. The operation should complete with the 7s delay:</p>
+<p><img src="../assets/images/fault-injection-delay-1.png" alt=""></p>
+<p>The <code>checkout</code> service communicates with the <code>payment</code> service, hence the delay occurred.</p>
+<p>The 7s delay was handled gracefully by the application. Let&apos;s rise the delay to 120s to emulate a severe network congestion:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/paymentservice-fault-vs-2.yaml
+virtualservice.networking.istio.io/paymentservice configured
+</code></pre><p>Add another item and place the order. This time the application should fail and expose the <code>500 Internal Server Error</code> to the user:</p>
+<p><img src="../assets/images/fault-injection-delay-2.png" alt=""></p>
+<p>In production environment, applications must always hide internal errors from the end user. In addition, the application should configure a request timeout.</p>
+<h3 id="inject-http-abort-fault">Inject HTTP abort fault</h3>
+<p>In this scenario we will inject an abort fault into the <code>productcatalog</code> service.</p>
+<p>Apply the following fault policy:</p>
+<pre><code>$ kubectl -n default apply -f ./release/istio/productcatalogservice-fault-vs-1.yaml
+virtualservice.networking.istio.io/productcatalogservice configured
+</code></pre><p>Inspect its details:</p>
+<pre><code>$ kubectl -n default describe vs productcatalogservice
+</code></pre><pre><code class="lang-yaml"><span class="hljs-attr">Name:</span>         productcatalogservice
+<span class="hljs-attr">Namespace:</span>    default
+...
+<span class="hljs-attr">Spec:</span>
+<span class="hljs-attr">  Hosts:</span>
+    productcatalogservice
+<span class="hljs-attr">  Http:</span>
+<span class="hljs-attr">    Fault:</span>
+<span class="hljs-attr">      Abort:</span>
+        Http Status:  <span class="hljs-number">500</span>
+<span class="hljs-attr">        Percentage:</span>
+<span class="hljs-attr">          Value:</span>  <span class="hljs-number">30</span>
+<span class="hljs-attr">    Route:</span>
+<span class="hljs-attr">      Destination:</span>
+<span class="hljs-attr">        Host:</span>    productcatalogservice
+<span class="hljs-attr">        Subset:</span>  v1
+</code></pre>
+<p>The above configuration injects 500 error for 30% percent of the traffic to the <code>productcatalog</code> service.</p>
+<p>Refresh the main page of the test application several times to observe the error message exposed to the user:</p>
+<p><img src="../assets/images/fault-injection-abort.png" alt=""></p>
+<p>Again, the application should hide the internal error from the user and instead display a gentle warning, for instance:</p>
+<pre><code>Product Catalog is temporarily unavailable. Sorry for inconvenience.`
+</code></pre>
                                 
                                 </section>
                             
@@ -442,12 +444,12 @@ virtualservice.networking.istio.io/shippingservice created
 
             
                 
-                <a href="ingress-gateway.html" class="navigation navigation-prev " aria-label="Previous page: Ingress gateway">
+                <a href="traffic-shifting.html" class="navigation navigation-prev " aria-label="Previous page: Traffic shifting">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="traffic-shifting.html" class="navigation navigation-next " aria-label="Next page: Traffic shifting">
+                <a href="../cleanup/destroy.html" class="navigation navigation-next " aria-label="Next page: Destroy the cluster">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -458,7 +460,7 @@ virtualservice.networking.istio.io/shippingservice created
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Traffic routing","level":"4.2","depth":1,"next":{"title":"Traffic shifting","level":"4.3","depth":1,"path":"traffic-management/traffic-shifting.md","ref":"traffic-management/traffic-shifting.md","articles":[]},"previous":{"title":"Ingress gateway","level":"4.1","depth":1,"path":"traffic-management/ingress-gateway.md","ref":"traffic-management/ingress-gateway.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/traffic-routing.md","mtime":"2020-06-07T10:14:30.577Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T14:13:11.270Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Fault injection","level":"4.4","depth":1,"next":{"title":"Destroy the cluster","level":"5.1","depth":1,"path":"cleanup/destroy.md","ref":"cleanup/destroy.md","articles":[]},"previous":{"title":"Traffic shifting","level":"4.3","depth":1,"path":"traffic-management/traffic-shifting.md","ref":"traffic-management/traffic-shifting.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"traffic-management/fault-injection.md","mtime":"2020-06-07T13:09:27.692Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-06-07T14:13:11.270Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>
